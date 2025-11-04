@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pipe Sizing & Section — OD/ID, Area, Perimeter</title>
+<meta name="color-scheme" content="light dark">
+<style>
+  :root{
+    --bg:#f7fbff; --card:#ffffff; --ink:#0f172a; --muted:#475569;
+    --accent:#0ea5e9; --accent-2:#0284c7; --ring:rgba(14,165,233,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0b1320; --card:#0f1a2b; --ink:#e5f2ff; --muted:#9fb3c8; --accent:#38bdf8; --accent-2:#0ea5e9; --ring:rgba(56,189,248,.35); }
+  }
+  *{box-sizing:border-box}
+  body{ margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        color:var(--ink); background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(56,189,248,.12), transparent 70%),
+        radial-gradient(900px 500px at 120% 10%, rgba(14,165,233,.10), transparent 70%), var(--bg);
+        display:flex; align-items:center; justify-content:center; padding:24px;}
+  .shell{width:100%; max-width:980px}
+  .card{background:var(--card); border-radius:18px; box-shadow:0 8px 30px rgba(2,12,27,.12); overflow:hidden; border:1px solid rgba(2,12,27,.06)}
+  .header{padding:18px 20px; display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid rgba(2,12,27,.06)}
+  .content{padding:18px; display:grid; gap:18px}
+  .grid{display:grid; gap:14px}
+  @media (min-width:900px){ .grid{grid-template-columns: 1.2fr 1fr} }
+  .panel{border:1px solid rgba(2,12,27,.08); border-radius:14px; padding:16px; background:linear-gradient(180deg, rgba(56,189,248,.07), transparent 45%), var(--card)}
+  h2{margin:.1rem 0 .75rem; font-size:1rem}
+  label{font-size:.92rem; color:var(--muted)}
+  select, input[type="number"]{
+    width:100%; padding:12px; font-size:1rem; border-radius:10px; border:1px solid rgba(2,12,27,.15);
+    background:var(--card); color:var(--ink); outline:none;
+  }
+  select:focus, input[type="number"]:focus{ border-color:var(--accent-2); box-shadow:0 0 0 6px var(--ring) }
+  .row{display:grid; gap:10px}
+  .row2{display:grid; gap:10px; grid-template-columns:1fr 1fr}
+  .muted{color:var(--muted)}
+  .stat{border:1px dashed rgba(2,12,27,.18); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:baseline; gap:12px}
+  .small{font-size:.84rem; color:var(--muted)}
+  .foot{padding:12px 18px; border-top:1px solid rgba(2,12,27,.06); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .btn{
+    appearance:none; border:1px solid rgba(2,12,27,.18); background:var(--card);
+    padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600;
+  }
+  .btn.primary{border-color:transparent; background:linear-gradient(180deg,var(--accent),var(--accent-2)); color:white}
+  .btn:active{transform:translateY(1px)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="card">
+    <div class="header">
+      <div>
+        <strong>Pipe Sizing & Section</strong><br>
+        <span class="small">Material-specific OD/ID • Area & Perimeter (uses ID)</span>
+      </div>
+      <div class="small">Water Engineering • Responsive</div>
+    </div>
+
+    <div class="content">
+      <div class="grid">
+        <!-- INPUTS -->
+        <section class="panel">
+          <h2>Inputs</h2>
+          <div class="row2">
+            <div>
+              <label for="mat">Material</label>
+              <select id="mat" aria-label="Pipe material">
+                <option value="NONE" selected>Not selected (use nominal D)</option>
+                <option value="PVC">PVC (AWWA C900)</option>
+                <option value="HDPE">HDPE</option>
+                <option value="DIP">Ductile Iron (DIP)</option>
+              </select>
+            </div>
+            <div>
+              <label for="nom">Nominal size (in)</label>
+              <input id="nom" type="number" min="0" step="0.01" placeholder="e.g., 12" value="12" aria-label="Nominal size in inches">
+            </div>
+          </div>
+
+          <!-- PVC options -->
+          <div id="pvcBlock" class="row" style="margin-top:10px; display:none;">
+            <div class="row2">
+              <div>
+                <label for="pvcDR">PVC C900 rating (DR → pressure)</label>
+                <select id="pvcDR" aria-label="PVC DR">
+                  <option value="14">DR 14 — 305 psi</option>
+                  <option value="18" selected>DR 18 — 235 psi</option>
+                  <option value="25">DR 25 — 165 psi</option>
+                  <option value="32.5">DR 32.5 — 125 psi</option>
+                  <option value="41">DR 41 — 100 psi</option>
+                  <option value="51">DR 51 — 80 psi</option>
+                </select>
+              </div>
+              <div class="small">PVC C900 uses CIOD/DIPS ODs (compatible with DI fittings).</div>
+            </div>
+          </div>
+
+          <!-- HDPE options -->
+          <div id="hdpeBlock" class="row" style="margin-top:10px; display:none;">
+            <div class="row2">
+              <div>
+                <label for="hdpeSeries">HDPE sizing</label>
+                <select id="hdpeSeries" aria-label="HDPE sizing">
+                  <option value="IPS" selected>IPS (NPS/steel ODs)</option>
+                  <option value="DIPS">DIPS (CIOD/DI ODs)</option>
+                </select>
+              </div>
+              <div>
+                <label for="hdpeDR">HDPE DR</label>
+                <select id="hdpeDR" aria-label="HDPE DR">
+                  <option value="7">DR 7</option>
+                  <option value="9">DR 9</option>
+                  <option value="11">DR 11</option>
+                  <option value="13.5">DR 13.5</option>
+                  <option value="17" selected>DR 17</option>
+                  <option value="21">DR 21</option>
+                  <option value="26">DR 26</option>
+                  <option value="32.5">DR 32.5</option>
+                  <option value="41">DR 41</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- DIP options -->
+          <div id="dipBlock" class="row" style="margin-top:10px; display:none;">
+            <div class="row2">
+              <div>
+                <label for="dipThk">DIP wall thickness (in)</label>
+                <input id="dipThk" type="number" min="0" step="0.001" placeholder="e.g., 0.35" aria-label="DIP wall thickness">
+              </div>
+              <div class="small">
+                DIP is thickness/pressure-class based (AWWA C151). Enter the actual wall thickness per your class/spec to compute ID.
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <button id="calcBtn" class="btn primary" type="button">Calculate</button>
+            <div class="small">Auto-updates as you type. “Calculate” is there just in case (mobile browsers).</div>
+          </div>
+
+          <div class="small" style="margin-top:8px">
+            <strong>Formulas</strong> — For DR-rated pipes: thickness \(t = \dfrac{OD}{DR}\), \(ID = OD - 2t = OD\,(1 - \frac{2}{DR})\).
+            For “Not selected”, this tool uses \(D =\) nominal size directly for area & perimeter.
+          </div>
+        </section>
+
+        <!-- RESULTS -->
+        <section class="panel">
+          <h2>Results</h2>
+          <div class="row">
+            <div class="stat"><div>OD</div><div><span id="od_in">—</span> in</div></div>
+            <div class="stat"><div>ID</div><div><span id="id_in">—</span> in</div></div>
+            <div class="stat"><div>Area (based on ID / nominal)</div><div><span id="a_in2">—</span> in²</div></div>
+            <div class="stat"><div>Area (based on ID / nominal)</div><div><span id="a_ft2">—</span> ft²</div></div>
+            <div class="stat"><div>Perimeter (ID / nominal circumference)</div><div><span id="p_in">—</span> in</div></div>
+            <div class="stat"><div>Perimeter (ID / nominal circumference)</div><div><span id="p_ft">—</span> ft</div></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- EQUATIONS -->
+      <section class="panel">
+        <h2>Equations</h2>
+        <div class="small">
+          Area \(A = \pi\left(\dfrac{D}{2}\right)^2\). Perimeter \(P = \pi\,D\). For material modes, \(D=ID\); for “Not selected”, \(D=\) nominal input.
+        </div>
+      </section>
+    </div>
+
+    <div class="foot">
+      <div class="small">Change material / DR / sizing and nominal size — results update live.</div>
+      <div class="small">© 2025</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // --- Reference OD tables ---
+  // DIPS / CIOD (used by DI + PVC C900; and by HDPE when DIPS is chosen)
+  const DIPS_OD = {
+    3:3.96, 4:4.80, 6:6.90, 8:9.05, 10:11.10, 12:13.20, 14:15.30, 16:17.40, 18:19.50,
+    20:21.60, 24:25.80, 30:31.00, 36:37.20, 42:43.40, 48:49.50
+  };
+  // IPS / NPS ODs (steel/NPS; used by HDPE-IPS)
+  const IPS_OD = {
+    2:2.375, 3:3.5, 4:4.5, 6:6.625, 8:8.625, 10:10.75, 12:12.75,
+    14:14.0, 16:16.0, 18:18.0, 20:20.0, 22:22.0, 24:24.0,
+    30:30.0, 36:36.0, 42:42.0, 48:48.0
+  };
+
+  const el = {
+    mat: document.getElementById('mat'),
+    nom: document.getElementById('nom'),
+    pvcBlock: document.getElementById('pvcBlock'),
+    pvcDR: document.getElementById('pvcDR'),
+    hdpeBlock: document.getElementById('hdpeBlock'),
+    hdpeSeries: document.getElementById('hdpeSeries'),
+    hdpeDR: document.getElementById('hdpeDR'),
+    dipBlock: document.getElementById('dipBlock'),
+    dipThk: document.getElementById('dipThk'),
+    od_in: document.getElementById('od_in'),
+    id_in: document.getElementById('id_in'),
+    a_in2: document.getElementById('a_in2'),
+    a_ft2: document.getElementById('a_ft2'),
+    p_in: document.getElementById('p_in'),
+    p_ft: document.getElementById('p_ft'),
+    calcBtn: document.getElementById('calcBtn')
+  };
+
+  function fmt(n, d=3){ return (!isFinite(n)) ? "—" : Number(n).toFixed(d).replace(/\.?0+$/,''); }
+
+  function getOD(material, nom, ctx){
+    const n = Number(nom);
+    if (!(n > 0)) return NaN;
+
+    if (material === 'PVC'){
+      return DIPS_OD[n] ?? NaN; // PVC C900 uses DIPS/CIOD
+    }
+    if (material === 'HDPE'){
+      return (ctx.series === 'IPS') ? (IPS_OD[n] ?? NaN) : (DIPS_OD[n] ?? NaN);
+    }
+    if (material === 'DIP'){
+      return DIPS_OD[n] ?? NaN;
+    }
+    // 'NONE' has no OD table
+    return NaN;
+  }
+
+  function getID(material, OD, ctx){
+    if (material === 'NONE') return NaN; // handled separately using nominal
+    if (!isFinite(OD) || OD <= 0) return NaN;
+
+    if (material === 'PVC'){
+      const DR = Number(ctx.pvcDR);
+      if (!(DR > 0)) return NaN;
+      return OD * (1 - 2/DR);
+    }
+    if (material === 'HDPE'){
+      const DR = Number(ctx.hdpeDR);
+      if (!(DR > 0)) return NaN;
+      return OD * (1 - 2/DR*1.06);
+    }
+    if (material === 'DIP'){
+      const t = Number(ctx.dipThk);
+      if (!(t >= 0)) return NaN;
+      return Math.max(OD - 2*t, 0);
+    }
+    return NaN;
+  }
+
+  function compute(){
+    const material = el.mat.value;
+    const nom = parseFloat(el.nom.value);
+
+    // Show/hide option blocks
+    el.pvcBlock.style.display  = (material === 'PVC')  ? '' : 'none';
+    el.hdpeBlock.style.display = (material === 'HDPE') ? '' : 'none';
+    el.dipBlock.style.display  = (material === 'DIP')  ? '' : 'none';
+
+    const ctx = {
+      pvcDR: el.pvcDR.value,
+      hdpeDR: el.hdpeDR.value,
+      series: el.hdpeSeries.value,
+      dipThk: el.dipThk.value
+    };
+
+    let OD = getOD(material, nom, ctx);
+    let ID = getID(material, OD, ctx);
+
+    // Special mode: "Not selected" — compute with nominal directly
+    let D_for_section = ID; // by default, section uses ID
+    if (material === 'NONE'){
+      const Dnom = (nom > 0) ? nom : NaN;
+      D_for_section = Dnom;   // area/perimeter use nominal
+      OD = NaN;               // leave OD/ID blank to avoid implying standards
+      ID = NaN;
+    }
+
+    const pi = Math.PI;
+    const A_in2 = isFinite(D_for_section) ? pi * Math.pow(D_for_section/2, 2) : NaN;
+    const P_in  = isFinite(D_for_section) ? pi * D_for_section : NaN;
+    const in_to_ft = 1/12;
+
+    // Render
+    el.od_in.textContent = fmt(OD, 3);
+    el.id_in.textContent = fmt(ID, 3);
+    el.a_in2.textContent = fmt(A_in2, 3);
+    el.a_ft2.textContent = fmt(A_in2 * in_to_ft * in_to_ft, 5);
+    el.p_in.textContent  = fmt(P_in, 3);
+    el.p_ft.textContent  = fmt(P_in * in_to_ft, 4);
+  }
+
+  // Events
+  const watch = (node)=>['input','change','keyup'].forEach(ev=>node.addEventListener(ev, compute));
+  [el.mat, el.nom, el.pvcDR, el.hdpeSeries, el.hdpeDR, el.dipThk].forEach(watch);
+  el.calcBtn.addEventListener('click', compute);
+
+  // Initial state
+  el.mat.value = 'NONE'; // default to Not selected mode per your request
+  compute();
+})();
+</script>
+</body>
+</html>
+
+
